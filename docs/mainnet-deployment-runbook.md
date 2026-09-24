@@ -66,6 +66,26 @@ deployment:
 sha256sum target/wasm32-unknown-unknown/release/vortex_intent_settlement.wasm
 ```
 
+### Alternative: Download from GitHub Release
+
+For reproducible verification without rebuilding, download the verified `.wasm`
+binary and `SHASUMS256.txt` from the [GitHub Release](https://github.com/stellar-vortex-protocol/vortex-contracts/releases)
+corresponding to the version tag you're deploying:
+
+```bash
+# Download SHASUMS256.txt from the release
+curl -L https://github.com/stellar-vortex-protocol/vortex-contracts/releases/download/v1.0.0/SHASUMS256.txt -o SHASUMS256.txt
+
+# Download the wasm binary
+curl -L https://github.com/stellar-vortex-protocol/vortex-contracts/releases/download/v1.0.0/vortex_intent_settlement.wasm -o vortex_intent_settlement.wasm
+
+# Verify checksum
+sha256sum -c SHASUMS256.txt
+```
+
+This binary is built deterministically using Rust 1.78.0 and can be independently
+verified to match the source code at that tag — no local build required.
+
 ---
 
 ## Deploy the Contract
