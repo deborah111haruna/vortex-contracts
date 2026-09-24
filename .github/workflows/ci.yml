@@ -271,3 +271,15 @@ jobs:
         run: cargo install cargo-mutants --locked
       - name: Run mutation tests
         run: cargo mutants --copy-target=false
+
+  view-calls-sync:
+    name: Check view-calls collection sync (Issue #290)
+    runs-on: ubuntu-latest
+    # Needs: contents: read (checkout only). This job just runs a shell script
+    # to verify the Postman collection is in sync with contract view functions.
+    # Inherits workflow-level minimum.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Postman collection sync
+        run: scripts/check-view-calls-sync.sh
+        shell: bash
