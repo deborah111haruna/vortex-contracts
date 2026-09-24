@@ -23,7 +23,25 @@ the org-wide
 
 ## Toolchain Setup
 
-### Rust
+### Quick start via devcontainer (recommended for new contributors)
+
+If you have [Docker](https://docs.docker.com/get-docker/) and [VS Code](https://code.visualstudio.com/) installed:
+
+1. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) for VS Code
+2. Clone this repository
+3. Open it in VS Code, then run the **Dev Containers: Reopen in Container** command (Ctrl+Shift+P / Cmd+Shift+P)
+4. VS Code will build the devcontainer and install all dependencies automatically
+5. Once ready, run `make all` or `just all` in the terminal to verify the build
+
+This approach ensures a reproducible setup matching the pinned Rust 1.78 toolchain used in CI, with zero manual configuration steps.
+
+Alternatively, use GitHub Codespaces: click the green "Code" button → "Codespaces" tab → "Create codespace on main". The devcontainer will bootstrap automatically.
+
+### Manual setup (Rust, wasm32 target, Stellar CLI, cargo-audit)
+
+If you prefer not to use devcontainers, follow these steps manually:
+
+#### Rust
 
 Install Rust via [rustup](https://rustup.rs/):
 
