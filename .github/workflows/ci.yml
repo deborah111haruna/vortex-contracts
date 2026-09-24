@@ -283,3 +283,26 @@ jobs:
       - name: Check Postman collection sync
         run: scripts/check-view-calls-sync.sh
         shell: bash
+
+  risk-aware-solver-bot-tests:
+    name: Test risk_aware_solver_bot.py (Issue #293)
+    runs-on: ubuntu-latest
+    # Needs: contents: read (checkout only). Pytest runs in-process, no network calls.
+    # Inherits workflow-level minimum.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: pip install pytest pytest-cov
+      - name: Run pytest suite
+        run: pytest examples/tests/ -v --cov=examples --cov-report=term-missing
+      - name: Upload coverage
+        if: always()
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: examples
+          fail_ci_if_error: false
