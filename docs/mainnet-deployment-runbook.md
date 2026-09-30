@@ -563,25 +563,59 @@ stellar contract invoke \
 
 ### Quick status check script
 
-Save this as `scripts/check-deployment.sh` and run it any time you need a
-fast health overview:
+A health-check script is provided in the repository at [`scripts/check-deployment.sh`](../../scripts/check-deployment.sh).
+Run it any time you need a fast deployment overview:
 
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
-CONTRACT_ID="${1:?Usage: check-deployment.sh <CONTRACT_ID>}"
-NETWORK="${2:-mainnet}"
-
-echo "=== Vortex Intent Settlement — Deployment Health Check ==="
-echo "Contract: $CONTRACT_ID  Network: $NETWORK"
-echo ""
-
-echo -n "Admin:          "; stellar contract invoke --id "$CONTRACT_ID" --source "$STELLAR_SECRET_KEY" --network "$NETWORK" -- get_admin
-echo -n "Fee Recipient:  "; stellar contract invoke --id "$CONTRACT_ID" --source "$STELLAR_SECRET_KEY" --network "$NETWORK" -- get_fee_recipient
-echo -n "Bond Token:     "; stellar contract invoke --id "$CONTRACT_ID" --source "$STELLAR_SECRET_KEY" --network "$NETWORK" -- get_bond_token
-echo -n "Paused:         "; stellar contract invoke --id "$CONTRACT_ID" --source "$STELLAR_SECRET_KEY" --network "$NETWORK" -- is_paused
-echo -n "Allowlist on:   "; stellar contract invoke --id "$CONTRACT_ID" --source "$STELLAR_SECRET_KEY" --network "$NETWORK" -- is_dst_allowlist_enabled
-echo -n "Stats:          "; stellar contract invoke --id "$CONTRACT_ID" --source "$STELLAR_SECRET_KEY" --network "$NETWORK" -- get_stats
-echo ""
-echo "=== Done ==="
+./scripts/check-deployment.sh $CONTRACT_ID           # check on mainnet
+./scripts/check-deployment.sh $CONTRACT_ID testnet   # check on testnet
 ```
+
+The script queries six key contract state values (all read-only, no fees):
+
+1. **Admin** — the administrative address (can pause/resume, transfer admin, rotate fee recipient)
+2. **Fee Recipient** — the address that collects protocol fees and slash proceeds
+3. **Bond Token** — the token (USDC) used for solver bonds
+4. **Paused** — whether the contract is currently paused (`true` = paused, `false` = operating)
+5. **Allowlist enabled** — whether the destination token allowlist is active
+6. **Stats** — a 3-tuple: `(total_intents, total_volume, open_intents)`
+
+Requires: `stellar` CLI in $PATH and a configured Stellar identity or `STELLAR_SECRET_KEY` environment variable.
+
+---
+
+## Ongoing Monitoring
+
+After deployment, continuously monitor the contract for incidents using the dedicated ops monitoring tool.
+
+### Vortex Monitoring & Alerting Service
+
+The repository includes a real-time monitoring & alerting service at [`monitoring/vortex-monitor.js`](../monitoring/README.md)
+that watches for P1/P2/P3 signals defined in [`docs/110-monitoring-alerting-spec.md`](110-monitoring-alerting-spec.md).
+
+**Setup:**
+
+```bash
+cd monitoring
+
+# Configure environment
+export SOROBAN_RPC_URL="https://soroban-mainnet.stellar.org"
+export CONTRACT_ID="C..."
+export NETWORK="mainnet"
+export ALERT_WEBHOOK_URL="https://your-alerting-service.example.com/webhooks/alerts"
+
+# Run the monitor
+node vortex-monitor.js
+```
+
+**Signals monitored:**
+
+- **P1** (page immediately): Unexpected pause/unpause, admin transfer, fee recipient change, token rescue
+- **P2** (escalate): Unusual slash rate, bond utilization drop, mass solver exit, paused longer than expected
+- **P3** (informational): Fill-rate stagnation, extension-granting frequency, config churn
+
+See [`monitoring/README.md`](../monitoring/README.md) for full documentation, configuration options, and alert formats.
+
+---
+
+*Document status: Updated to reference ops tooling implementation (Issue #289)*
